@@ -5,3 +5,7 @@ api-version: '1.21'
 load: STARTUP
 authors: [ Fabian_MCH ]
 description: A production-grade, open-architecture analytics ecosystem that turns raw Minecraft server events into actionable insights through a generic metric pipeline, real-time dashboards, and an extensible plugin API.
+commands:
+  debuganaly:
+    description: Toggle debugging Features
+    usage: /debuganaly
