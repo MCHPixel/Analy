@@ -24,8 +24,11 @@ public final class Analy extends JavaPlugin {
         // |                              |
         // --------------------------------
 
+
         // Create debug command
-        DebugCommand debugCommand = new DebugCommand();
+        // Give it the Logger to use!
+        DebugCommand debugCommand = new DebugCommand(getLogger());
+
 
         // Get the command from plugin.yml and validate it
         PluginCommand cmd_debuganaly = getCommand("debuganaly");
