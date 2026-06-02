@@ -443,7 +443,3 @@ Please follow the existing code style:
 - Commit messages: `feat:`, `fix:`, `docs:` prefixes
 
 ---
-
-## License
-
-MIT License — do whatever you want with it, just don't remove the license header.
