@@ -1,5 +1,6 @@
 package com.mchpixel.analy;
 
+import com.mchpixel.analy.core.ConfigManager;
 import com.mchpixel.analy.tests.DebugCommand;
 import com.mchpixel.analy.collectors.PlayerEventCollector;
 import com.mchpixel.analy.model.MetricBuffer;
@@ -10,13 +11,22 @@ public final class Analy extends JavaPlugin {
 
     // We store these as fields so onDisable can access them
     private MetricBuffer buffer;
+    private ConfigManager configManager;
 
     @Override
     public void onEnable() {
+        ConfigManager configManager = new ConfigManager(getLogger(), this);
+
+        if (!configManager.validate()) {
+            getLogger().severe("Invalid config — shutting down!");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
 
         // Create the buffer with a max size of 500
         //Important to be on the top else it will not work
-        buffer = new MetricBuffer(500);
+        buffer = new MetricBuffer(configManager.get_max_buffer_size());
 
         // ________________________________
         // |                              |
