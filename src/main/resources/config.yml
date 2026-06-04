@@ -1,0 +1,9 @@
+analy:
+  server-id: "default-server"
+  api-key: "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ01-2345-6789"
+  backend-url: "http://localhost:5000"
+  buffer:
+    flush-interval-seconds: 10
+    max-size: 500
+  tls:
+    verify-certificate: true
