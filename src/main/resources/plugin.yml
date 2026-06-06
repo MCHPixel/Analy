@@ -8,4 +8,7 @@ description: A production-grade, open-architecture analytics ecosystem that turn
 commands:
   debuganaly:
     description: Toggle debugging Features
-    usage: /debuganaly
+    usage: "/debuganaly"
+    aliases: [cmd, command]
+    permission: analy.debug
+    permission-message: "You do not have permission to use this command"
