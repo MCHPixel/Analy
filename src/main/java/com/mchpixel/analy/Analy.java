@@ -15,14 +15,14 @@ public final class Analy extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        ConfigManager configManager = new ConfigManager(getLogger(), this);
+        // Create config manager and validate before anything else
+        configManager = new ConfigManager(getLogger(), this);
 
         if (!configManager.validate()) {
             getLogger().severe("Invalid config — shutting down!");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-
 
         // Create the buffer with a max size of 500
         //Important to be on the top else it will not work
@@ -75,6 +75,8 @@ public final class Analy extends JavaPlugin {
 
         // Temp flush scheduler — just prints to console for now
         // We'll replace this with the real HTTP client later
+        long flushTicks = configManager.get_flush_interval_seconds() * 20L;
+
         new org.bukkit.scheduler.BukkitRunnable() {
             @Override
             public void run() {
@@ -84,7 +86,7 @@ public final class Analy extends JavaPlugin {
                 getLogger().info("Flushing " + batch.size() + " metrics:");
                 batch.forEach(m -> getLogger().info("  " + m.toString()));
             }
-        }.runTaskTimerAsynchronously(this, 200L, 200L); // 200 ticks = 10 seconds
+        }.runTaskTimerAsynchronously(this, flushTicks, flushTicks); // 200 ticks = 10 seconds
 
         getLogger().info("Analy started! :3");
 
