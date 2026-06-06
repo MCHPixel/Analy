@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import org.bukkit.plugin.Plugin;
 
-public class ConfigManager{
+public class ConfigManager {
 
     // Add the logger to this class to use for certain things!
     private final java.util.logging.Logger logger;
@@ -74,8 +74,6 @@ public class ConfigManager{
     }
 
 
-    private Boolean validStructure;
-
     // Using regEx expressions we check if the content
     // is consistent with what we expect as values
     public boolean validate() {
@@ -95,7 +93,7 @@ public class ConfigManager{
 
 
         // Validate Backend URL
-        Pattern backendUrl = Pattern.compile("https?://\\S+");
+        Pattern backendUrl = Pattern.compile("https?://[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+");
         Matcher matchBackendUrl = backendUrl.matcher(get_backend_url());
 
         boolean backendUrlFound = matchBackendUrl.find();
@@ -155,9 +153,8 @@ public class ConfigManager{
             return false;
         }
 
-
         // Everything passed!
-        return validStructure = true;
+        return true;
 
     }
 
