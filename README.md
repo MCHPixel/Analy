@@ -2,7 +2,8 @@
 
 > A lightweight, self-hostable telemetry and analytics platform for Minecraft servers.
 
-Analy is a PaperMC plugin that silently collects player and server events in the background and ships them to a self-hosted analytics backend for real-time dashboards and historical analysis. No cloud accounts. No external services. Just a Docker Compose stack and a jar in your plugins folder.
+Analy is a PaperMC plugin that collects player and server events in the background and puts them on a self-hosted analytics backend for real-time dashboards and historical analysis.
+No cloud accounts. No external services. Its just a Docker Container and a Minecraft Plugin
 
 ---
 
@@ -27,17 +28,20 @@ Analy is a PaperMC plugin that silently collects player and server events in the
 
 ## What is Analy?
 
-Analy is an **observability platform** for Minecraft server operators — the same category of tool as Prometheus or Grafana, but purpose-built for Minecraft and trivially easy to self-host.
+Analy is an **observability platform** for Minecraft servers — specifically for tracking certain things, purpose-built for Minecraft and trivially easy to self-host.
 
-It answers questions like:
+You can track stuff like:
 
 - How many players joined today vs last week?
 - What time of day is my server busiest?
 - How long do players stay on average?
 - When did my TPS drop and what was happening at the time?
 - What items are being traded most in my economy?
+- What did players buy with my addition
+- What part of my Plugin did players interact with the most
 
-Instead of hardcoding specific stats, Analy is built around a **generic metric pipeline** — every data point flows through the same structure regardless of what it represents. This means any event, from a player death to a custom boss kill, is tracked and queryable the same way.
+Instead of hardcoded, Analy is a **generic metric pipeline** — every data point flows through the same structure regardless of what it represents.
+This means any event, from a player death to a custom boss kill, could be tracked and queried.
 
 ---
 
@@ -57,7 +61,8 @@ The plugin never talks to the database directly. It only knows about the backend
 
 ### Why a buffer?
 
-Instead of sending one HTTP request per event (which would hammer the backend on a busy server), the plugin collects metrics in memory and sends them in batches. This means a server with 100 players all dying at once sends **one** HTTP request with 100 metrics, not 100 requests.
+Instead of sending one HTTP request per event (which would hammer the backend on a busy server), the plugin collects metrics in memory and sends them in batches.
+This means a server with 100 players all dying at once sends **one** HTTP request with 100 metrics, not 100 requests.
 
 ---
 
@@ -80,7 +85,7 @@ Instead of sending one HTTP request per event (which would hammer the backend on
 - TimescaleDB for efficient time-series storage and aggregation
 - Redis for rate limiting, pub/sub, and replay protection
 - Automatic HTTPS via Caddy
-- Ships as a tiny ~20MB Docker image
+- Ships as a tiny (insert-size) Docker image
 
 ### Dashboard
 - Real-time stat cards (TPS, player count, RAM)
@@ -96,7 +101,7 @@ Instead of sending one HTTP request per event (which would hammer the backend on
 
 ### Plugin
 - Java 17 or higher
-- PaperMC 1.20 or higher (Spigot compatible for most features)
+- PaperMC 1.21.1 or higher (Spigot compatible for most features)
 - A running Analy backend (see backend setup)
 
 ### Backend (Self-Hosted)
@@ -113,10 +118,10 @@ Instead of sending one HTTP request per event (which would hammer the backend on
 Clone the repository and start the Docker stack:
 
 ```bash
-git clone https://github.com/yourusername/analy.git
-cd analy
+git clone https://github.com/MCHPixel/Analy.git
+cd Analy
 cp .env.example .env
-# Edit .env and fill in your passwords and keys
+# Edit .env — required keys will be documented here once the backend is set up
 docker compose up -d
 ```
 
@@ -136,9 +141,15 @@ Edit `plugins/Analy/config.yml`:
 
 ```yaml
 analy:
-  server-id: "your-server-id"
-  api-key: "your-api-key"
-  backend-url: "https://your-domain.com"
+  server-id: "default-server"
+  api-key: "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ01-2345-6789"
+  backend-url: "http://localhost:5000"
+  buffer:
+    flush-interval-seconds: 10
+    max-size: 500
+  tls:
+    verify-certificate: true
+
 ```
 
 ### 5. Restart your server
@@ -149,7 +160,8 @@ You should see in console:
 [Analy] Analy started! :3
 ```
 
-That's it. Metrics are now flowing.
+That's it. Basic Metrics are now flowing.
+Now you can add plugins that hook into Analy and add their own metrics.
 
 ---
 
@@ -159,7 +171,7 @@ Full `config.yml` reference:
 
 ```yaml
 analy:
-  # Your server's unique ID from the dashboard
+  # Your server's unique ID defined by yourself which appears in the Dashboard
   server-id: "srv_01hx4k2..."
 
   # Your API key from the dashboard — keep this secret!
@@ -196,45 +208,47 @@ analy:
 
 ### Debug Mode
 
-Debug mode is useful when developing a new collector or third-party integration. When enabled, every metric that passes through the buffer gets printed to console immediately:
+Debug mode is useful when developing a new collector or third-party integration.
+When enabled, every metric that passes through the buffer gets printed to console immediately:
 
 ```
 [Analy Debug] metric added: Metric{metric='player.action.join', value=1.0, type=COUNTER, timestamp=1748510200000, tags={player_uuid=550e8400-...}}
 ```
 
-Toggle it off when you're done — it's noisy on a busy server.
+Toggle it off when you're done — it's too much for normal use.
 
 ---
 
 ## Metrics Collected
 
-Analy collects the following metrics out of the box. All metrics follow the `domain.subject.measurement` naming convention.
+Analy collects the following metrics out of the box.
+All metrics follow the `domain.subject.measurement` naming convention.
 
 ### Player Events
 
-| Metric | Type | Tags | Description |
-|--------|------|------|-------------|
-| `player.action.join` | COUNTER | `player_uuid` | Player joined the server |
-| `player.action.quit` | COUNTER | `player_uuid` | Player left the server |
-| `player.death.count` | COUNTER | `player_uuid`, `world` | Player died |
-| `player.session.duration` | DURATION | `player_uuid` | Length of a play session in ms |
+| Metric                    | Type      | Tags                   | Description                    |
+|---------------------------|-----------|------------------------|--------------------------------|
+| `player.action.join`      | COUNTER   | `player_uuid`          | Player joined the server       |
+| `player.action.quit`      | COUNTER   | `player_uuid`          | Player left the server         |
+| `player.death.count`      | COUNTER   | `player_uuid`, `world` | Player died                    |
+| `player.session.duration` | DURATION  | `player_uuid`          | Length of a play session in ms |
 
 ### Server Health
 
-| Metric | Type | Tags | Description |
-|--------|------|------|-------------|
-| `server.tps.current` | GAUGE | — | Current ticks per second (0–20) |
-| `server.memory.used_mb` | GAUGE | — | Heap memory currently in use |
-| `server.memory.max_mb` | GAUGE | — | Maximum configured heap |
-| `server.players.online` | GAUGE | — | Currently connected player count |
+| Metric                  | Type  | Tags  | Description                      |
+|-------------------------|-------|-------|----------------------------------|
+| `server.tps.current`    | GAUGE | —     | Current ticks per second (0–20)  |
+| `server.memory.used_mb` | GAUGE | —     | Heap memory currently in use     |
+| `server.memory.max_mb`  | GAUGE | —     | Maximum configured heap          |
+| `server.players.online` | GAUGE | —     | Currently connected player count |
 
 ### Economy (optional, requires Vault)
 
-| Metric | Type | Tags | Description |
-|--------|------|------|-------------|
-| `economy.balance.change` | GAUGE | `player_uuid` | Change in a player's balance |
-| `economy.item.price` | PRICE | `item`, `market` | Current price of an item |
-| `economy.transaction.volume` | COUNTER | — | Total value transacted |
+| Metric                       | Type    | Tags             | Description                  |
+|------------------------------|---------|------------------|------------------------------|
+| `economy.balance.change`     | GAUGE   | `player_uuid`    | Change in a player's balance |
+| `economy.item.price`         | PRICE   | `item`, `market` | Current price of an item     |
+| `economy.transaction.volume` | COUNTER | —                | Total value transacted       |
 
 ---
 
@@ -321,39 +335,6 @@ public void onEnable() {
 
 ---
 
-## Project Structure
-
-```
-analy/
-├── plugin/                          # Java PaperMC plugin
-│   └── src/main/java/com/mchpixel/analy/
-│       ├── Analy.java               # Plugin entry point
-│       ├── collectors/
-│       │   └── PlayerEventCollector.java
-│       ├── model/
-│       │   ├── Metric.java
-│       │   ├── MetricType.java
-│       │   ├── MetricBuffer.java
-│       │   └── Tags.java
-│       └── tests/
-│           └── DebugCommand.java
-├── backend/                         # Go backend + dashboard
-│   ├── cmd/analy/main.go
-│   ├── internal/
-│   │   ├── api/                     # REST API handlers
-│   │   ├── web/                     # SSR dashboard handlers
-│   │   ├── middleware/              # Auth, rate limiting, replay protection
-│   │   ├── service/                 # Business logic
-│   │   └── db/                      # Database queries + migrations
-│   ├── templates/                   # Go html/template files
-│   └── static/                      # CSS + htmx.min.js
-├── docker-compose.yml
-├── Caddyfile
-├── .env.example
-└── README.md
-```
-
----
 
 ## Development
 
