@@ -1,45 +1,21 @@
-I want to maintain a History.md so you give me this additionally:
 
-    Short Description of the Change with a Commit message and a Small commit Description
-    Short Description of what we did
-    Every class / function with what it is supposed to do
-
-
-Here is an Example
-
----
-(what-we-did)
 ### What we did
 Built the `ConfigManager` — reads all values from `config.yml` on startup and validates them before anything else runs. If anything is wrong the plugin shuts down cleanly with a clear error instead of crashing later.
-(/what-we-did)
 
-(commit-message)
 ### Commit
 ```
 feat: add config manager and validation
 ```
-(/commit-message)
-(commit-description)
 ```
 - Add ConfigManager to load config.yml values into typed fields
 - Add validation for required fields, placeholder detection, URL format and value ranges
 - Wire ConfigManager into Analy main class with early exit on invalid config
 ```
-(/commit-description)
 
-(class-name)
 #### `ConfigManager.java`
-(/class-name)
-(class-location)
 *`com.mchpixel.analy.core`*
-(/class-location)
 
-
-(short-description)
 Wraps PaperMC's built-in `getConfig()` and exposes all config values as typed fields. Also validates the entire config on startup and reports every problem clearly before anything else initialises.
-(/short-description)
-
-(function-with-use)
 
 | Member                              | Description                                                                                                                                                                           |
 |-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -50,8 +26,6 @@ Wraps PaperMC's built-in `getConfig()` and exposes all config values as typed fi
 | `get_backend_url()`                 | Returns `analy.backend-url`                                                                                                                                                           |
 | `get_flush_interval_seconds()`      | Returns `analy.buffer.flush-interval-seconds` (default: 10)                                                                                                                           |
 | `get_max_buffer_size()`             | Returns `analy.buffer.max-size` (default: 500)                                                                                                                                        |
-| `get_verify_certificate()`          | Returns `analy.tls.verify-certificate` (default: true)             
-
-(/function-with-use)
+| `get_verify_certificate()`          | Returns `analy.tls.verify-certificate` (default: true)                                                                                                                                |
 
 ---
